@@ -1,10 +1,7 @@
-![](cover.png)
-
-**A set of challenges to hack implementations of DeFi in Ethereum.**
-
-Featuring flash loans, price oracles, governance, NFTs, lending pools, smart contract wallets, timelocks, and more!
+# These repo has my solutions to the code challanges created by the team at damnvulnerabledefi.xyz
 
 Created by [@tinchoabbate](https://twitter.com/tinchoabbate)
+
 
 ## Play
 
