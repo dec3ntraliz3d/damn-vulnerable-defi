@@ -1,4 +1,4 @@
-## These repo has my solutions to the code challanges created by the team at damnvulnerabledefi.xyz
+## This repo has my solutions to the code challanges created by the team at damnvulnerabledefi.xyz
 
 ### If you don't want spoilers don't look at the solutions :) 
 
